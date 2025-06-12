@@ -1,0 +1,543 @@
+{% extends "layout.html" %} {% block content %}
+<section
+  class="bg-white rounded-2xl shadow-xl px-8 w-full gap-8 flex flex-col items-center py-16 relative"
+>
+  <img
+    src="{{ url_for('static', filename='fish.png') }}"
+    alt="Logo"
+    class="w-28 h-28 md:w-40 md:h-40 object-cover mx-auto absolute -top-16 left-0 z-10"
+  />
+
+  <!-- Header Section -->
+  <div class="w-full max-w-md text-center">
+    <!-- Header untuk kondisi default dan kamera -->
+    <div id="default-header">
+      <h1 class="text-3xl font-bold text-blue-800 mb-2">
+        Hai! Yuk cek kesegaran ikanmu di sini!
+      </h1>
+      <p class="mt-4 text-gray-600">
+        Cukup ambil foto atau upload gambar, hasil langsung
+      </p>
+    </div>
+
+    <!-- Header untuk kondisi hasil -->
+    <div id="result-header" class="hidden">
+      <h1 class="text-3xl font-bold text-blue-800 mb-2">
+        Hasil Prediksi Kesegaran Ikan
+      </h1>
+      <p class="mt-4 text-gray-600">
+        Berikut hasil analisis kesegaran ikan Anda
+      </p>
+    </div>
+  </div>
+
+  <!-- Form untuk semua kondisi -->
+  <div class="bg-white rounded-xl p-8 shadow-md w-[95%] border border-gray-200">
+    <!-- Status Text -->
+    <h3 class="text-lg font-semibold text-gray-700 text-center">
+      <span id="status-text">Belum ada gambar nih...</span><br />
+      <span class="font-normal text-gray-600" id="sub-status-text"
+        >Yuk pilih gambar dulu di bawah</span
+      >
+    </h3>
+
+    <!-- Container untuk semua kondisi gambar -->
+    <div class="my-8 flex justify-center">
+      <div
+        class="w-[90%] h-auto border-2 border-dashed border-gray-300 rounded-xl flex items-center justify-center p-2 overflow-hidden min-h-[300px]"
+        id="image-container"
+      >
+        <!-- Kondisi Default: Placeholder -->
+        <div
+          id="default-container"
+          class="flex flex-col items-center justify-center h-full"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-16 w-16 text-gray-400"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+            />
+          </svg>
+          <p class="mt-4 text-gray-500 text-center">Belum ada gambar</p>
+        </div>
+
+        <!-- Kondisi Kamera: Camera Preview -->
+        <div id="camera-container" class="hidden w-full h-full">
+          <video
+            id="camera-preview"
+            autoplay
+            playsinline
+            class="w-full h-full rounded-lg object-cover"
+          ></video>
+        </div>
+
+        <!-- Kondisi Hasil: Image Preview -->
+        <div id="image-preview" class="hidden w-full h-full">
+          <img
+            id="preview-img"
+            src=""
+            alt="Image Preview"
+            class="w-full h-full object-cover rounded-lg"
+          />
+        </div>
+      </div>
+    </div>
+
+    <!-- Hidden inputs -->
+    <input
+      id="file-input"
+      type="file"
+      name="file"
+      accept="image/*"
+      class="hidden"
+      onchange="handleImageUpload(event)"
+    />
+    <input type="hidden" id="camera-image-data" name="camera_image" />
+
+    <!-- Button Container untuk Kondisi Default -->
+    <div id="default-buttons" class="flex flex-col md:flex-row gap-4 w-full">
+      <button
+        class="flex items-center justify-center gap-2 w-full py-3 px-4 bg-blue-500 rounded-lg text-white hover:bg-blue-600 transition"
+        type="button"
+        id="open-camera"
+      >
+        <img
+          src="{{ url_for('static', filename='camera.png') }}"
+          alt="Camera icon"
+          class="w-8 h-8"
+        />
+        <span>Ambil Foto</span>
+      </button>
+
+      <button
+        class="flex items-center justify-center gap-2 w-full py-3 px-4 bg-blue-500 rounded-lg text-white hover:bg-blue-600 transition"
+        type="button"
+        id="upload-button"
+      >
+        <img
+          src="{{ url_for('static', filename='gallery.png') }}"
+          alt="Gallery icon"
+          class="w-8 h-8"
+        />
+        <span>Upload Gambar</span>
+      </button>
+    </div>
+
+    <!-- Button Container untuk Kondisi Kamera -->
+    <div
+      id="camera-buttons"
+      class="hidden w-full flex gap-4 justify-center mt-4"
+    >
+      <button
+        type="button"
+        id="capture-btn"
+        class="flex-1 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition"
+      >
+        Capture
+      </button>
+      <button
+        type="button"
+        id="cancel-camera"
+        class="flex-1 py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 transition"
+      >
+        Batal
+      </button>
+    </div>
+
+    <!-- Button Container untuk Kondisi Hasil -->
+    <div id="result-buttons" class="hidden w-full flex flex-col gap-4 mt-4">
+      <button
+        class="w-full py-3 px-4 bg-green-500 rounded-lg text-white hover:bg-green-600 transition"
+        onclick="submitForm(event)"
+      >
+        Prediksi Kesegaran
+      </button>
+      <button
+        type="button"
+        id="reset-button"
+        class="w-full py-3 px-4 bg-gray-500 rounded-lg text-white hover:bg-gray-600 transition"
+      >
+        Pilih Gambar Lain
+      </button>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="w-full max-w-md flex flex-col items-center">
+    <div class="flex flex-row items-center gap-3">
+      <p>&checkmark;</p>
+      <p class="text-gray-600">Proses cepat, offline, dan privasi kamu aman</p>
+    </div>
+
+    <div class="py-8 px-6 bg-transparent text-black">
+      <div class="max-w-4xl mx-auto">
+        <div class="mt-4 text-center text-gray-600 text-sm">
+          <p>Solusi cerdas untuk memastikan kesegaran ikan tongkol Anda</p>
+        </div>
+        <div class="flex flex-col justify-center items-center mt-4 text-sm">
+          <p class="">&copy;2025 Fresyn</p>
+        </div>
+      </div>
+    </div>
+  </footer>
+</section>
+
+<div
+  class="hidden fixed inset-0 w-full h-full bg-black bg-opacity-50 z-20 flex items-center justify-center"
+  id="happy"
+>
+  <div
+    class="bg-white rounded-lg shadow-lg p-4 w-fit h-fit flex flex-col gap-4 items-center"
+  >
+    <div
+      class="flex flex-row gap-4 items-center justify-center mx-auto self-center w-full z-10"
+    >
+      <img
+        src="{{ url_for('static', filename='logo.png') }}"
+        alt="Logo"
+        class="w-8 h-8 md:w-12 md:h-12 object-cover"
+      />
+      <h1 class="text-3xl md:text-4xl font-bold text-blue-800 w-fit">Fresyn</h1>
+    </div>
+    <div class="flex flex-col items-center">
+      <p class="text-xl md:text-2xl font-bold text-blue-800">IKANMU</p>
+      <p class="text-3xl md:text-4xl font-bold text-blue-800">SEGAR!</p>
+    </div>
+    <img
+      src="{{ url_for('static', filename='happy.png') }}"
+      alt="Logo"
+      class="w-[20%] h-auto object-cover"
+    />
+    <p>Akurasi Kesegaran: <span id="acc-happy">20</span>%</p>
+    <div class="flex flex-row items-center gap-2">
+      <div
+        class="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center"
+      >
+        <p class="text-white font-bold">&check;</p>
+      </div>
+      <p class="text-gray-600 font-medium text-lg">Siap dikonsumsi</p>
+    </div>
+    <p class="text-gray-600 text-sm">
+      Pastikan untuk segera menyimpannya ke tempat yang dingin
+    </p>
+    <button
+      class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded"
+      id="close-happy"
+    >
+      Coba Lagi
+    </button>
+  </div>
+</div>
+
+<div
+  class="hidden fixed inset-0 w-full h-full bg-black bg-opacity-50 z-20 flex items-center justify-center"
+  id="sad"
+>
+  <div
+    class="bg-white rounded-lg shadow-lg p-4 w-fit h-fit flex flex-col gap-4 items-center"
+  >
+    <div
+      class="flex flex-row gap-4 items-center justify-center mx-auto self-center w-full z-10"
+    >
+      <img
+        src="{{ url_for('static', filename='logo.png') }}"
+        alt="Logo"
+        class="w-8 h-8 md:w-12 md:h-12 object-cover"
+      />
+      <h1 class="text-3xl md:text-4xl font-bold text-blue-800 w-fit">Fresyn</h1>
+    </div>
+    <div class="flex flex-col items-center">
+      <p class="text-xl md:text-2xl font-bold text-red-800">IKANMU</p>
+      <p class="text-3xl md:text-4xl font-bold text-red-800">TIDAK SEGAR</p>
+    </div>
+    <img
+      src="{{ url_for('static', filename='sad.png') }}"
+      alt="Logo"
+      class="w-[20%] h-auto object-cover"
+    />
+    <p>Akurasi Kesegaran: <span id="acc-sad">20</span>%</p>
+    <div class="flex flex-row items-center gap-2">
+      <div
+        class="w-8 h-8 rounded-full bg-red-500 flex items-center justify-center"
+      >
+        <p class="text-white font-bold">&times;</p>
+      </div>
+      <p class="text-gray-800 font-medium text-lg">
+        Tidak disarankan untuk dikonsumsi
+      </p>
+    </div>
+    <p class="text-gray-600 text-sm">
+      Ikan menunjukkan tanda-tanda tidak segar. Silakan periksa bau, warna, dan
+      tekstur
+    </p>
+    <button
+      class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded"
+      id="close-sad"
+    >
+      Coba Lagi
+    </button>
+  </div>
+</div>
+
+<div
+  class="hidden inset-0 w-full h-full bg-black bg-opacity-50 z-20 flex items-center justify-center"
+  id="loading"
+>
+  <div class="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+</div>
+
+<script>
+  // =====================
+  // STATE MANAGEMENT
+  // =====================
+  const states = {
+    DEFAULT: "default",
+    CAMERA: "camera",
+    RESULT: "result",
+  };
+
+  let currentState = states.DEFAULT;
+  let stream = null;
+
+  // =====================
+  // DOM ELEMENTS
+  // =====================
+  // Containers
+  const defaultContainer = document.getElementById("default-container");
+  const cameraContainer = document.getElementById("camera-container");
+  const imagePreview = document.getElementById("image-preview");
+
+  // Buttons
+  const defaultButtons = document.getElementById("default-buttons");
+  const cameraButtons = document.getElementById("camera-buttons");
+  const resultButtons = document.getElementById("result-buttons");
+
+  // Headers
+  const defaultHeader = document.getElementById("default-header");
+  const resultHeader = document.getElementById("result-header");
+
+  // Text elements
+  const statusText = document.getElementById("status-text");
+  const subStatusText = document.getElementById("sub-status-text");
+
+  // Inputs
+  const fileInput = document.getElementById("file-input");
+  const cameraImageData = document.getElementById("camera-image-data");
+
+  // Media elements
+  const cameraPreview = document.getElementById("camera-preview");
+  const previewImg = document.getElementById("preview-img");
+
+  // =====================
+  // STATE FUNCTIONS
+  // =====================
+  function setState(newState) {
+    // Hide all containers
+    defaultContainer.classList.add("hidden");
+    cameraContainer.classList.add("hidden");
+    imagePreview.classList.add("hidden");
+    defaultButtons.classList.add("hidden");
+    cameraButtons.classList.add("hidden");
+    resultButtons.classList.add("hidden");
+    resultHeader.classList.add("hidden");
+    defaultHeader.classList.add("hidden");
+
+    // Reset status text
+    statusText.textContent = "";
+    subStatusText.textContent = "";
+
+    // Handle camera stream if switching away from camera
+    if (currentState === states.CAMERA && newState !== states.CAMERA) {
+      closeCamera();
+    }
+
+    // Set new state
+    currentState = newState;
+
+    switch (newState) {
+      case states.DEFAULT:
+        defaultContainer.classList.remove("hidden");
+        defaultButtons.classList.remove("hidden");
+        defaultHeader.classList.remove("hidden");
+        statusText.textContent = "Belum ada gambar nih...";
+        subStatusText.textContent = "Yuk pilih gambar dulu di bawah";
+        break;
+
+      case states.CAMERA:
+        cameraContainer.classList.remove("hidden");
+        cameraButtons.classList.remove("hidden");
+        defaultHeader.classList.remove("hidden");
+        statusText.textContent = "Kamera aktif";
+        subStatusText.textContent = "Posisikan ikan di dalam frame";
+        openCamera();
+        break;
+
+      case states.RESULT:
+        imagePreview.classList.remove("hidden");
+        resultButtons.classList.remove("hidden");
+        resultHeader.classList.remove("hidden");
+        statusText.textContent = "Gambar siap diprediksi!";
+        subStatusText.textContent = "Klik tombol Prediksi untuk melanjutkan";
+        break;
+    }
+  }
+
+  // =====================
+  // CAMERA FUNCTIONS
+  // =====================
+  async function openCamera() {
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: "environment" },
+      });
+      cameraPreview.srcObject = stream;
+    } catch (err) {
+      console.error("Error accessing camera:", err);
+      alert("Tidak dapat mengakses kamera. Pastikan Anda memberikan izin.");
+      setState(states.DEFAULT);
+    }
+  }
+
+  function closeCamera() {
+    if (stream) {
+      stream.getTracks().forEach((track) => track.stop());
+      stream = null;
+    }
+  }
+
+  function captureImage() {
+    const canvas = document.createElement("canvas");
+    const context = canvas.getContext("2d");
+
+    canvas.width = cameraPreview.videoWidth;
+    canvas.height = cameraPreview.videoHeight;
+
+    context.drawImage(cameraPreview, 0, 0, canvas.width, canvas.height);
+
+    const imageData = canvas.toDataURL("image/jpeg");
+    cameraImageData.value = imageData;
+    previewImg.src = imageData;
+
+    setState(states.RESULT);
+  }
+
+  // =====================
+  // IMAGE HANDLING
+  // =====================
+  function handleImageUpload(event) {
+    const file = event.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        previewImg.src = e.target.result;
+        setState(states.RESULT);
+      };
+      reader.readAsDataURL(file);
+    }
+  }
+
+  // =====================
+  // EVENT LISTENERS
+  // =====================
+  document.getElementById("open-camera").addEventListener("click", () => {
+    setState(states.CAMERA);
+  });
+
+  document.getElementById("upload-button").addEventListener("click", () => {
+    fileInput.click();
+  });
+
+  document
+    .getElementById("capture-btn")
+    .addEventListener("click", captureImage);
+
+  document.getElementById("cancel-camera").addEventListener("click", () => {
+    setState(states.DEFAULT);
+  });
+
+  document.getElementById("reset-button").addEventListener("click", () => {
+    // Reset inputs
+    fileInput.value = "";
+    cameraImageData.value = "";
+
+    setState(states.DEFAULT);
+  });
+
+  // Initialize to default state
+  setState(states.DEFAULT);
+
+  const modalHappy = document.getElementById("happy");
+  const modalSad = document.getElementById("sad");
+  const closeHappy = document.getElementById("close-happy");
+  const closeSad = document.getElementById("close-sad");
+  const accHappy = document.getElementById("acc-happy");
+  const accSad = document.getElementById("acc-sad");
+  const loading = document.getElementById("loading");
+
+  closeHappy.addEventListener("click", onCloseModal);
+  closeSad.addEventListener("click", onCloseModal);
+
+  function onCloseModal() {
+    modalHappy.classList.add("hidden");
+    modalSad.classList.add("hidden");
+    setState(states.DEFAULT);
+    accHappy.textContent = "";
+    accSad.textContent = "";
+    loading.classList.add("hidden");
+  }
+  // =====================
+  // FORM SUBMISSION
+  // =====================
+  async function submitForm(e) {
+    e.preventDefault();
+    loading.classList.remove("hidden");
+
+    const valueFile = document.getElementById("file-input").files[0];
+    const valueCamera = document.getElementById("camera-image-data").value;
+
+    if (!valueCamera && !valueFile) {
+      return alert("Pilih gambar terlebih dahulu");
+    }
+
+    const formData = new FormData();
+    if (valueFile) {
+      formData.append("file", valueFile); // Append the selected file
+    }
+    if (valueCamera.trim()) {
+      formData.append("camera_image", valueCamera); // Append the base64 camera image
+    }
+
+    try {
+      const response = await fetch("/result", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.label == "Segar") {
+          modalHappy.classList.remove("hidden");
+          accHappy.textContent = data.accuracy;
+        } else if (data.label == "Tidak Segar") {
+          modalSad.classList.remove("hidden");
+          accSad.textContent = data.accuracy;
+        }
+      }
+    } catch (error) {
+      alert("Terjadi kesalahan saat mengirim gambar.");
+      console.log(error);
+      alert("Terjadi kesalahan saat mengirim gambar.");
+    } finally {
+      loading.classList.add("hidden");
+    }
+  }
+</script>
+{% endblock %}

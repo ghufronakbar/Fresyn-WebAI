@@ -1,0 +1,24 @@
+# Ignore virtual environment
+venv/
+
+# Byte-compiled / cache files
+__pycache__/
+*.py[cod]
+*.pyc
+*.pyo
+*.mo
+*.egg
+*.egg-info
+dist/
+build/
+.mypy_cache/
+
+# Editor/OS files
+.DS_Store
+*.swp
+*.swo
+Thumbs.db
+
+# Flask environment variable
+
+model.h5
