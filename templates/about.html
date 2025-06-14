@@ -1,0 +1,155 @@
+{% extends "layout.html" %} {% block content %}
+<section
+  class="bg-white rounded-2xl shadow-xl px-8 w-full gap-8 flex flex-col items-center py-16 relative"
+>
+  <img
+    src="{{ url_for('static', filename='fish.png') }}"
+    alt="Logo"
+    class="w-28 h-28 md:w-40 md:h-40 object-cover mx-auto absolute -top-16 left-0 z-10"
+  />
+
+  <div class="bg-white rounded-xl p-8 shadow-md w-[95%] border border-gray-200">
+    <p>
+      <strong>Fresyn</strong> merupakan sistem berbasis kecerdasan buatan yang
+      dirancang untuk membantu proses pengecekan kesegaran ikan tongkol secara
+      mudah dan cepat. Menggunakan teknologi Convolutional Neural Network (CNN),
+      sistem ini mampu menganalisis gambar mata ikan dan menentukan apakah ikan
+      tersebut masih segar atau tidak. Pengguna cukup mengunggah foto ikan, dan
+      hasil analisis akan ditampilkan secara otomatis. Fresyn dikembangkan
+      sebagai bentuk penerapan teknologi sederhana yang dapat digunakan dalam
+      kehidupan sehari-hari.
+    </p>
+  </div>
+  <div
+    class="bg-white rounded-xl p-8 shadow-md w-[95%] border border-gray-200 flex flex-col gap-2"
+  >
+    <div>⚙️ Teknologi: CNN (Convolutional Neural Network)</div>
+    <div>📷 Input: Gambar mata ikan</div>
+    <div>✅ Output: Segar / Tidak Segar</div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="w-full max-w-md flex flex-col items-center">
+    <div class="flex flex-row items-center gap-3">
+      <p>&checkmark;</p>
+      <p class="text-gray-600">Proses cepat, offline, dan privasi kamu aman</p>
+    </div>
+
+    <div class="py-8 px-6 bg-transparent text-black">
+      <div class="max-w-4xl mx-auto">
+        <div class="mt-4 text-center text-gray-600 text-sm">
+          <p>Solusi cerdas untuk memastikan kesegaran ikan tongkol Anda</p>
+        </div>
+        <div class="flex flex-col justify-center items-center mt-4 text-sm">
+          <p class="">&copy;2025 Fresyn</p>
+        </div>
+      </div>
+    </div>
+  </footer>
+</section>
+
+<div
+  class="hidden fixed inset-0 w-full h-full bg-black bg-opacity-50 z-20 flex items-center justify-center"
+  id="happy"
+>
+  <div
+    class="bg-white rounded-lg shadow-lg p-4 w-fit h-fit flex flex-col gap-4 items-center"
+  >
+    <div
+      class="flex flex-row gap-4 items-center justify-center mx-auto self-center w-full z-10"
+    >
+      <img
+        src="{{ url_for('static', filename='logo.png') }}"
+        alt="Logo"
+        class="w-8 h-8 md:w-12 md:h-12 object-cover"
+      />
+      <h1 class="text-3xl md:text-4xl font-bold text-blue-800 w-fit">Fresyn</h1>
+    </div>
+    <div class="flex flex-col items-center">
+      <p class="text-xl md:text-2xl font-bold text-blue-800">IKANMU</p>
+      <p class="text-3xl md:text-4xl font-bold text-blue-800">SEGAR!</p>
+    </div>
+    <img
+      src="{{ url_for('static', filename='happy.png') }}"
+      alt="Logo"
+      class="w-[20%] h-auto object-cover"
+    />
+    <p>Akurasi Kesegaran: <span id="acc-happy">20</span>%</p>
+    <div class="flex flex-row items-center gap-2">
+      <div
+        class="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center"
+      >
+        <p class="text-white font-bold">&check;</p>
+      </div>
+      <p class="text-gray-600 font-medium text-lg">Siap dikonsumsi</p>
+    </div>
+    <p class="text-gray-600 text-sm">
+      Pastikan untuk segera menyimpannya ke tempat yang dingin
+    </p>
+    <button
+      class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded"
+      id="close-happy"
+    >
+      Coba Lagi
+    </button>
+  </div>
+</div>
+
+<div
+  class="hidden fixed inset-0 w-full h-full bg-black bg-opacity-50 z-20 flex items-center justify-center"
+  id="sad"
+>
+  <div
+    class="bg-white rounded-lg shadow-lg p-4 w-fit h-fit flex flex-col gap-4 items-center"
+  >
+    <div
+      class="flex flex-row gap-4 items-center justify-center mx-auto self-center w-full z-10"
+    >
+      <img
+        src="{{ url_for('static', filename='logo.png') }}"
+        alt="Logo"
+        class="w-8 h-8 md:w-12 md:h-12 object-cover"
+      />
+      <h1 class="text-3xl md:text-4xl font-bold text-blue-800 w-fit">Fresyn</h1>
+    </div>
+    <div class="flex flex-col items-center">
+      <p class="text-xl md:text-2xl font-bold text-red-800">IKANMU</p>
+      <p class="text-3xl md:text-4xl font-bold text-red-800">TIDAK SEGAR</p>
+    </div>
+    <img
+      src="{{ url_for('static', filename='sad.png') }}"
+      alt="Logo"
+      class="w-[20%] h-auto object-cover"
+    />
+    <p>Akurasi Kesegaran: <span id="acc-sad">20</span>%</p>
+    <div class="flex flex-row items-center gap-2">
+      <div
+        class="w-8 h-8 rounded-full bg-red-500 flex items-center justify-center"
+      >
+        <p class="text-white font-bold">&times;</p>
+      </div>
+      <p class="text-gray-800 font-medium text-lg">
+        Tidak disarankan untuk dikonsumsi
+      </p>
+    </div>
+    <p class="text-gray-600 text-sm">
+      Ikan menunjukkan tanda-tanda tidak segar. Silakan periksa bau, warna, dan
+      tekstur
+    </p>
+    <button
+      class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded"
+      id="close-sad"
+    >
+      Coba Lagi
+    </button>
+  </div>
+</div>
+
+<div
+  class="hidden inset-0 w-full h-full bg-black bg-opacity-50 z-20 flex items-center justify-center"
+  id="loading"
+>
+  <div class="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+</div>
+
+{% endblock %}

@@ -7,10 +7,33 @@
 
     <!-- ✅ Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      rel="shortcut icon"
+      href="{{ url_for('static', filename='logo.png') }}"
+    />
 
     <style>
       body {
         font-family: Arial, sans-serif;
+      }
+    </style>
+    <style>
+      .img-responsive {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      .fit-width {
+        width: 100%;
+        height: auto;
+        object-fit: contain;
+      }
+
+      .fit-height {
+        width: auto;
+        height: 100%;
+        object-fit: contain;
       }
     </style>
   </head>
@@ -24,7 +47,7 @@
 
     {% if header_show %}
     <div
-      class="flex flex-row gap-4 items-center justify-center mx-auto self-center w-full z-10"
+      class="flex flex-row gap-4 items-center justify-center mx-auto self-center w-full z-10 relative"
     >
       <img
         src="{{ url_for('static', filename='logo.png') }}"
@@ -32,10 +55,13 @@
         class="w-8 h-8 md:w-12 md:h-12 object-cover"
       />
       <h1 class="text-3xl md:text-4xl font-bold text-blue-800 w-fit">Fresyn</h1>
+
+      <div class="absolute right-0 flex flex-row gap-4 items-center z-10">
+        <a class="text-blue-800" href="/scan">Scan</a>
+        <a class="text-blue-800" href="/about">About</a>
+      </div>
     </div>
     {% endif %}
-    <div class="w-full z-10 w-full">
-      {% block content %}{% endblock %}
-    </div>
+    <div class="w-full z-10 w-full">{% block content %}{% endblock %}</div>
   </body>
 </html>

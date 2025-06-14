@@ -116,8 +116,9 @@ def predict_and_render(filepath, filename):
     # Predict using your model
     prediction = model.predict(img_array)
     class_index = np.argmax(prediction)
-    label = label_map[class_index]
-    accuracy = float(prediction[0][class_index])
+    label = label_map[class_index]    
+    accuracy = 100 - (float(prediction[0][class_index]) * 100)
+    
 
     # Prepare the data for rendering in result.html
     data = {
@@ -135,6 +136,11 @@ def allowed_file(filename):
 @app.route('/uploads/<filename>')
 def uploaded_file(filename):
     return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
+
+
+@app.route('/about')
+def about():
+    return render_template('about.html', header_show=True)
 
 
 

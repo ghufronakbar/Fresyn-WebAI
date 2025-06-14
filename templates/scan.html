@@ -80,12 +80,16 @@
         </div>
 
         <!-- Kondisi Hasil: Image Preview -->
-        <div id="image-preview" class="hidden w-full h-full">
+        <div
+          id="image-preview"
+          class="hidden w-full h-full max-w-md aspect-square"
+        >
           <img
             id="preview-img"
             src=""
             alt="Image Preview"
-            class="w-full h-full object-cover rounded-lg"
+            class="w-full h-full object-cover rounded-lg img-responsive"
+            onload="adjustImageFit(this)"
           />
         </div>
       </div>
@@ -167,6 +171,33 @@
       >
         Pilih Gambar Lain
       </button>
+    </div>
+    <!-- CONTAINER HISTORIES -->
+    <div class="flex flex-col gap-4 mt-8">
+      <h4 class="text-2xl font-bold">Riwayat Klasifikasi</h4>
+      <div
+        class="flex flex-row gap-2 flex-wrap items-center"
+        id="histories-container"
+      >
+        <!-- CONTAINTER ITEM HISTORY -->
+        <div
+          class="flex flex-col items-center gap-2 w-24 p-2 rounded-2xl overflow-hidden"
+        >
+          <div
+            class="aspect-square rounded-2xl bg-gray-200 flex items-center justify-center p-4 w-full h-auto overflow-hidden"
+          >
+            <img
+              src="{{ url_for('static', filename='happy.png') }}"
+              alt="Logo"
+              class="w-full h-full object-cover"
+            />
+          </div>
+          <div class="flex flex-col items-center">
+            <p class="text-black">Segar</p>
+            <p class="text-gray-600 text-sm">22%</p>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -492,6 +523,7 @@
     accHappy.textContent = "";
     accSad.textContent = "";
     loading.classList.add("hidden");
+    window.location.reload();
   }
   // =====================
   // FORM SUBMISSION
@@ -523,12 +555,20 @@
 
       if (response.ok) {
         const data = await response.json();
+        console.log({ data });
+        await saveToLocalStorage({
+          label: data.label,
+          timestamp: Date.now(),
+          accuracy: data.accuracy?.toString().slice(0, 4),
+          image: data.image_url,
+        });
+        renderHistories();
         if (data.label == "Segar") {
           modalHappy.classList.remove("hidden");
-          accHappy.textContent = data.accuracy;
+          accHappy.textContent = data.accuracy?.toString().slice(0, 4);
         } else if (data.label == "Tidak Segar") {
           modalSad.classList.remove("hidden");
-          accSad.textContent = data.accuracy;
+          accSad.textContent = data.accuracy?.toString().slice(0, 4);
         }
       }
     } catch (error) {
@@ -539,5 +579,95 @@
       loading.classList.add("hidden");
     }
   }
+  function adjustImageFit(img) {
+    const isHorizontal = img.naturalWidth > img.naturalHeight;
+    if (isHorizontal) {
+      img.classList.add("fit-width");
+    } else {
+      img.classList.add("fit-height");
+    }
+    img.classList.remove("img-responsive");
+  }
+
+  function getFromLocalStorage() {
+    try {
+      const histories = localStorage.getItem("histories");
+      if (histories) {
+        const parsed = JSON.parse(histories);
+        return parsed.sort((a, b) => b.timestamp - a.timestamp);
+      }
+      return [];
+    } catch (error) {
+      console.error("Error parsing localStorage:", error);
+      localStorage.setItem("histories", JSON.stringify([]));
+      return [];
+    }
+  }
+
+  function saveToLocalStorage(data) {
+    try {
+      const histories = getFromLocalStorage();
+      localStorage.setItem("histories", JSON.stringify([...histories, data]));
+    } catch (error) {
+      console.error("Error saving to localStorage:", error);
+      localStorage.setItem("histories", JSON.stringify([]));
+    }
+  }
+
+  function deleteHistory(timestamp) {
+    try {
+      const histories = getFromLocalStorage();
+      const filtered = histories.filter((item) => item.timestamp !== timestamp);
+      localStorage.setItem("histories", JSON.stringify(filtered));
+      renderHistories();
+    } catch (error) {
+      console.error("Error deleting from localStorage:", error);
+      localStorage.setItem("histories", JSON.stringify([]));
+    }
+  }
+
+  function renderHistories() {
+    const histories = getFromLocalStorage();
+    const container = document.getElementById("histories-container");
+    container.innerHTML = ""; // clear
+
+    if (histories.length === 0) {
+      container.innerHTML = '<p class="text-gray-500">Belum ada riwayat.</p>';
+      return;
+    }
+
+    histories.forEach((item) => {
+      // Tentukan gambar sesuai label
+      const { image, label, accuracy, timestamp } = item;
+
+      // Tanggal human readable
+      const date = new Date(timestamp);
+      const dateString = date.toLocaleString();
+
+      // Element HTML riwayat
+      const el = document.createElement("div");
+      el.className =
+        "flex flex-col items-center gap-2 w-40 p-2 rounded-2xl overflow-hidden relative group bg-white border border-gray-100 shadow";
+
+      el.innerHTML = `
+      <button title="Hapus" onclick="deleteHistory(${timestamp})" 
+        class="absolute right-1 top-1 text-red-500 hover:text-red-700 bg-white bg-opacity-80 rounded-full p-1 hidden group-hover:block z-20">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+      <div class="aspect-square rounded-2xl bg-gray-200 flex items-center justify-center w-full h-auto overflow-hidden">
+        <img src="${image}" alt="Riwayat" class="w-full h-full object-cover" />
+      </div>
+      <div class="flex flex-col items-center">
+        <p class="text-black font-bold text-center">${label}</p>
+        <p class="text-gray-600 text-sm text-center">${accuracy}%</p>
+        <p class="text-gray-400 text-xs text-center">${dateString}</p>
+      </div>
+    `;
+      container.appendChild(el);
+    });
+  }
+  document.addEventListener("DOMContentLoaded", renderHistories);
 </script>
 {% endblock %}
